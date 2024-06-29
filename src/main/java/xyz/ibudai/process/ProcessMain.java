@@ -108,8 +108,13 @@ public class ProcessMain {
                     String pid = (String) tableModel.getValueAt(selectedRow, 0);
                     pIdField.setText(pid);
                     // Port
+                    String port;
                     String innerHost = (String) tableModel.getValueAt(selectedRow, 2);
-                    String port = innerHost.substring(innerHost.indexOf(":") + 1);
+                    if (innerHost.startsWith("[")) {
+                        port = innerHost.substring(innerHost.indexOf("]:") + 2);
+                    } else {
+                        port = innerHost.substring(innerHost.indexOf(":") + 1);
+                    }
                     portField.setText(port);
                 }
             }
@@ -182,9 +187,14 @@ public class ProcessMain {
             List<ProcessDetail> detailList = buildTableData();
             detailList = detailList.stream()
                     .filter(it -> {
+                        String port;
                         String innerHost = it.getInnerHost();
-                        String host = innerHost.substring(innerHost.indexOf(":") + 1);
-                        return Objects.equals(input.trim(), host.trim());
+                        if (innerHost.startsWith("[")) {
+                            port = innerHost.substring(innerHost.indexOf("]:") + 2);
+                        } else {
+                            port = innerHost.substring(innerHost.indexOf(":") + 1);
+                        }
+                        return Objects.equals(input.trim(), port.trim());
                     })
                     .collect(Collectors.toList());
             if (detailList.isEmpty()) {
