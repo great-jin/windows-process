@@ -1,29 +1,45 @@
 package xyz.ibudai.process;
 
 import xyz.ibudai.process.model.ProcessDetail;
+import xyz.ibudai.process.util.ExceptionConvert;
+import xyz.ibudai.process.util.ProcessUtil;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ProcessMain {
 
-    public static void main(String[] args) {
-        // 创建 JFrame 窗口
-        JFrame frame = new JFrame("Windows 进程管理");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 400);
+    private static final int frameWidth = 900;
 
-        // 端口查询重置
+    private static final int frameHeight = 600;
+
+    private static final JFrame frame = new JFrame("Windows 进程管理");
+
+
+    public static void main(String[] args) {
+        try {
+            draw();
+        } catch (Exception e) {
+            String message = ExceptionConvert.buildMsg(e);
+            JOptionPane.showMessageDialog(frame, message, "Unexpect Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * 绘制程序窗体页面
+     */
+    public static void draw() {
+        // 创建 JFrame 窗口
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(frameWidth, frameHeight);
+
+        // 端口输入；查询重置按钮
         JPanel inputPanel = new JPanel();
         JLabel portLabel = new JLabel("Port:");
         JTextField portText = new JTextField(20);
@@ -33,7 +49,7 @@ public class ProcessMain {
         inputPanel.add(portText);
         inputPanel.add(searchBt);
         inputPanel.add(resetBt);
-        // 进程查询删除
+        // 进程输入；删除按钮
         JLabel pIdLabel = new JLabel("PID:");
         JTextField pIdText = new JTextField(20);
         JButton killBt = new JButton("Kill");
@@ -46,26 +62,23 @@ public class ProcessMain {
         DefaultTableModel tableModel = new DefaultTableModel(heads, 0);
         JScrollPane tablePanel = drawTable(tableModel, portText, pIdText);
 
-        // 端口进程搜索
-        searchTable(frame, portText, searchBt, tableModel);
-        // 表格数据重置
+        // 搜索按钮事件监听
+        searchTable(portText, searchBt, tableModel);
+        // 重置按钮事件监听
         resetTable(resetBt, portText, pIdText, tableModel);
-        // 删除进程
-        killProcess(frame, portText, pIdText, killBt, resetBt);
+        // Kill按钮事件监听
+        killProcess(portText, pIdText, killBt, resetBt);
 
-        // 设置内容面板的内边距
+        // 内容面板的内边距
         JPanel contentPane = new JPanel(new BorderLayout());
-        // 上、左、下、右各 20 像素
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
         // 将 panel 添加到内容面板中
         contentPane.add(tablePanel, BorderLayout.CENTER);
         contentPane.add(inputPanel, BorderLayout.NORTH);
 
-        // 将内容面板设置为 JFrame 的内容面板
         frame.setContentPane(contentPane);
         // 设置面板位置未屏幕中央
         frame.setLocationRelativeTo(null);
-        // 设置 JFrame 可见
         frame.setVisible(true);
     }
 
@@ -78,7 +91,7 @@ public class ProcessMain {
      * @return
      */
     private static JScrollPane drawTable(DefaultTableModel tableModel, JTextField portField, JTextField pIdField) {
-        for (ProcessDetail detail : buildTableData()) {
+        for (ProcessDetail detail : ProcessUtil.buildTableData()) {
             tableModel.addRow(
                     new Object[]{
                             detail.getPid(),
@@ -124,67 +137,22 @@ public class ProcessMain {
     }
 
     /**
-     * 查询系统中当前进程
-     *
-     * @return
-     */
-    public static List<ProcessDetail> buildTableData() {
-        List<ProcessDetail> detailList = new ArrayList<>();
-
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("netstat", "-ano");
-        try {
-            Process process = processBuilder.start();
-            try (
-                    InputStreamReader in = new InputStreamReader(process.getInputStream(), "GBK");
-                    BufferedReader reader = new BufferedReader(in)
-            ) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    List<String> list = Arrays.stream(line.split(" "))
-                            .filter(it -> !Objects.equals("", it))
-                            .collect(Collectors.toList());
-                    if (list.size() != 5) {
-                        continue;
-                    }
-
-                    detailList.add(
-                            new ProcessDetail(
-                                    list.get(0),
-                                    list.get(1),
-                                    list.get(2),
-                                    list.get(3),
-                                    list.get(4)
-                            )
-                    );
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return detailList.stream().skip(1).collect(Collectors.toList());
-    }
-
-    /**
      * 根据输入端口号过滤进程
      *
-     * @param frame
-     * @param textField
-     * @param searchBt
-     * @param tableModel
+     * @param textField  port input
+     * @param searchBt   search button
+     * @param tableModel table data
      */
-    public static void searchTable(JFrame frame, JTextField textField, JButton searchBt, DefaultTableModel tableModel) {
+    public static void searchTable(JTextField textField, JButton searchBt, DefaultTableModel tableModel) {
         // 添加按钮点击事件监听器
         searchBt.addActionListener(h -> {
-            // 获取输入框的值
             String input = textField.getText();
-            // 在此处添加将输入框的值处理并更新表格逻辑
             if (Objects.isNull(input) || Objects.equals("", input)) {
                 JOptionPane.showMessageDialog(frame, "请输入端口号", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            List<ProcessDetail> detailList = buildTableData();
+            List<ProcessDetail> detailList = ProcessUtil.buildTableData();
             detailList = detailList.stream()
                     .filter(it -> {
                         String port;
@@ -204,7 +172,7 @@ public class ProcessMain {
             }
 
             for (ProcessDetail detail : detailList) {
-                tableModel.setRowCount(0); // 清空表格
+                tableModel.setRowCount(0);
                 tableModel.addRow(
                         new Object[]{
                                 detail.getPid(),
@@ -215,20 +183,22 @@ public class ProcessMain {
                         }
                 );
             }
-            textField.setText(""); // 清空输入框
+            textField.setText("");
         });
     }
 
     /**
      * 重置表格数据
      *
-     * @param resetBt
-     * @param tableModel
+     * @param resetBt    reset button
+     * @param portField  port input
+     * @param pidField   pid input
+     * @param tableModel table data
      */
     public static void resetTable(JButton resetBt, JTextField portField, JTextField pidField, DefaultTableModel tableModel) {
         resetBt.addActionListener(h -> {
             tableModel.setRowCount(0);
-            for (ProcessDetail detail : buildTableData()) {
+            for (ProcessDetail detail : ProcessUtil.buildTableData()) {
                 tableModel.addRow(
                         new Object[]{
                                 detail.getPid(),
@@ -247,12 +217,12 @@ public class ProcessMain {
     /**
      * Kill 所选进程
      *
-     * @param frame
-     * @param pidField
-     * @param killBt
-     * @param resetBt
+     * @param portField port input
+     * @param pidField  pid input
+     * @param killBt    kill button
+     * @param resetBt   reset button
      */
-    public static void killProcess(JFrame frame, JTextField portField, JTextField pidField, JButton killBt, JButton resetBt) {
+    public static void killProcess(JTextField portField, JTextField pidField, JButton killBt, JButton resetBt) {
         killBt.addActionListener(h -> {
             String text = pidField.getText();
             if (Objects.isNull(text) || Objects.equals("", text)) {
