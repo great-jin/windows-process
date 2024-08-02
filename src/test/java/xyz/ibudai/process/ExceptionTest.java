@@ -1,6 +1,6 @@
 package xyz.ibudai.process;
 
-import xyz.ibudai.process.util.ExceptionConvert;
+import xyz.ibudai.process.util.ExceptionUtils;
 
 public class ExceptionTest {
 
@@ -8,7 +8,7 @@ public class ExceptionTest {
         try {
             Integer.parseInt("abc");
         } catch (Exception e) {
-            System.out.println(ExceptionConvert.buildMsg(e));
+            System.out.println(ExceptionUtils.buildMsg(e));
         }
     }
 }

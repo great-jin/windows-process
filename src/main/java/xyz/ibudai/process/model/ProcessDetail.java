@@ -2,6 +2,10 @@ package xyz.ibudai.process.model;
 
 public class ProcessDetail {
 
+    private String pid;
+
+    private String serviceName;
+
     private String protocol;
 
     private String innerHost;
@@ -10,18 +14,32 @@ public class ProcessDetail {
 
     private String status;
 
-    private String pid;
+    private String memoryUse;
+
 
     public ProcessDetail() {
     }
 
-    public ProcessDetail(String protocol, String innerHost, String outerHost, String status, String pid) {
+    public ProcessDetail(String pid, String protocol, String innerHost, String outerHost, String status) {
+        this.pid = pid;
         this.protocol = protocol;
         this.innerHost = innerHost;
         this.outerHost = outerHost;
         this.status = status;
-        this.pid = pid;
     }
+
+    public static Object[] convert(ProcessDetail detail) {
+        return new Object[]{
+                detail.getPid(),
+                detail.getServiceName(),
+                detail.getProtocol(),
+                detail.getInnerHost(),
+                detail.getOuterHost(),
+                detail.getMemoryUse(),
+                detail.getStatus()
+        };
+    }
+
 
     public String getProtocol() {
         return protocol;
@@ -61,5 +79,21 @@ public class ProcessDetail {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMemoryUse() {
+        return memoryUse;
+    }
+
+    public void setMemoryUse(String memoryUse) {
+        this.memoryUse = memoryUse;
     }
 }

@@ -1,8 +1,10 @@
 package xyz.ibudai.process;
 
+import xyz.ibudai.process.common.FormConst;
+import xyz.ibudai.process.common.Header;
 import xyz.ibudai.process.model.ProcessDetail;
-import xyz.ibudai.process.util.ExceptionConvert;
-import xyz.ibudai.process.util.ProcessUtil;
+import xyz.ibudai.process.util.ExceptionUtils;
+import xyz.ibudai.process.util.ProcessUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,19 +17,15 @@ import java.util.stream.Collectors;
 
 public class ProcessMain {
 
-    private static final int frameWidth = 900;
-
-    private static final int frameHeight = 600;
-
-    private static final JFrame frame = new JFrame("Windows 进程管理");
+    private static final JFrame frame = new JFrame(FormConst.Zh.TITLE);
 
 
     public static void main(String[] args) {
         try {
             draw();
         } catch (Exception e) {
-            String message = ExceptionConvert.buildMsg(e);
-            JOptionPane.showMessageDialog(frame, message, "Unexpect Error", JOptionPane.ERROR_MESSAGE);
+            String message = ExceptionUtils.buildMsg(e);
+            JOptionPane.showMessageDialog(frame, message, FormConst.Zh.MSG_TITLE_UNEXPECT, JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -37,29 +35,28 @@ public class ProcessMain {
     public static void draw() {
         // 创建 JFrame 窗口
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(frameWidth, frameHeight);
+        frame.setSize(FormConst.FRAME_WIDTH, FormConst.FRAME_HEIGHT);
 
         // 端口输入；查询重置按钮
         JPanel inputPanel = new JPanel();
-        JLabel portLabel = new JLabel("Port:");
+        JLabel portLabel = new JLabel(FormConst.Zh.LB_PORT);
         JTextField portText = new JTextField(20);
-        JButton searchBt = new JButton("Search");
-        JButton resetBt = new JButton("Reset");
+        JButton searchBt = new JButton(FormConst.Zh.BT_SEARCH);
+        JButton resetBt = new JButton(FormConst.Zh.BT_RESET);
         inputPanel.add(portLabel);
         inputPanel.add(portText);
         inputPanel.add(searchBt);
         inputPanel.add(resetBt);
         // 进程输入；删除按钮
-        JLabel pIdLabel = new JLabel("PID:");
+        JLabel pIdLabel = new JLabel(FormConst.Zh.LB_PID);
         JTextField pIdText = new JTextField(20);
-        JButton killBt = new JButton("Kill");
+        JButton killBt = new JButton(FormConst.Zh.BT_KILL);
         inputPanel.add(pIdLabel);
         inputPanel.add(pIdText);
         inputPanel.add(killBt);
 
         // Table 对象
-        String[] heads = new String[]{"PID", "Protocol", "Inner Host", "Outer Host", "Status"};
-        DefaultTableModel tableModel = new DefaultTableModel(heads, 0);
+        DefaultTableModel tableModel = new DefaultTableModel(Header.zhHeaders(), 0);
         JScrollPane tablePanel = drawTable(tableModel, portText, pIdText);
 
         // 搜索按钮事件监听
@@ -88,19 +85,10 @@ public class ProcessMain {
      * @param tableModel table 数据
      * @param portField  PORT 输入框
      * @param pIdField   PID 输入框
-     * @return
      */
     private static JScrollPane drawTable(DefaultTableModel tableModel, JTextField portField, JTextField pIdField) {
-        for (ProcessDetail detail : ProcessUtil.buildTableData()) {
-            tableModel.addRow(
-                    new Object[]{
-                            detail.getPid(),
-                            detail.getProtocol(),
-                            detail.getInnerHost(),
-                            detail.getOuterHost(),
-                            detail.getStatus()
-                    }
-            );
+        for (ProcessDetail detail : ProcessUtils.getTaskDetail()) {
+            tableModel.addRow(ProcessDetail.convert(detail));
         }
 
         // 创建 JTable
@@ -109,8 +97,8 @@ public class ProcessMain {
                 return false;
             }
         };
-        table.setFont(new Font("Serif", Font.PLAIN, 17)); // 设置表格字体大小为 16px
-        table.setRowHeight(20); // 设置行高，使得字体更适合
+        table.setFont(new Font("Serif", Font.PLAIN, 17));
+        table.setRowHeight(20);
 
         // 添加表格选中行监听器
         table.getSelectionModel().addListSelectionListener(event -> {
@@ -118,11 +106,11 @@ public class ProcessMain {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
                     // PID
-                    String pid = (String) tableModel.getValueAt(selectedRow, 0);
+                    String pid = (String) tableModel.getValueAt(selectedRow, Header.PID.getIndex());
                     pIdField.setText(pid);
                     // Port
                     String port;
-                    String innerHost = (String) tableModel.getValueAt(selectedRow, 2);
+                    String innerHost = (String) tableModel.getValueAt(selectedRow, Header.INNER_HOST.getIndex());
                     if (innerHost.startsWith("[")) {
                         port = innerHost.substring(innerHost.indexOf("]:") + 2);
                     } else {
@@ -143,16 +131,16 @@ public class ProcessMain {
      * @param searchBt   search button
      * @param tableModel table data
      */
-    public static void searchTable(JTextField textField, JButton searchBt, DefaultTableModel tableModel) {
+    private static void searchTable(JTextField textField, JButton searchBt, DefaultTableModel tableModel) {
         // 添加按钮点击事件监听器
         searchBt.addActionListener(h -> {
             String input = textField.getText();
-            if (Objects.isNull(input) || Objects.equals("", input)) {
-                JOptionPane.showMessageDialog(frame, "请输入端口号", "Input Error", JOptionPane.ERROR_MESSAGE);
+            if (Objects.isNull(input) || Objects.equals(FormConst.BLANK, input)) {
+                JOptionPane.showMessageDialog(frame, FormConst.Zh.MSG_INPUT_PORT, FormConst.Zh.MSG_TITLE_ERROR, JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            List<ProcessDetail> detailList = ProcessUtil.buildTableData();
+            List<ProcessDetail> detailList = ProcessUtils.getTaskDetail();
             detailList = detailList.stream()
                     .filter(it -> {
                         String port;
@@ -167,23 +155,15 @@ public class ProcessMain {
                     .collect(Collectors.toList());
             if (detailList.isEmpty()) {
                 String msg = String.format("未找到端口 {%s} 进程", input);
-                JOptionPane.showMessageDialog(frame, msg, "Input Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, msg, FormConst.Zh.MSG_TITLE_ERROR, JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             for (ProcessDetail detail : detailList) {
                 tableModel.setRowCount(0);
-                tableModel.addRow(
-                        new Object[]{
-                                detail.getPid(),
-                                detail.getProtocol(),
-                                detail.getInnerHost(),
-                                detail.getOuterHost(),
-                                detail.getStatus()
-                        }
-                );
+                tableModel.addRow(ProcessDetail.convert(detail));
             }
-            textField.setText("");
+            textField.setText(FormConst.BLANK);
         });
     }
 
@@ -195,22 +175,14 @@ public class ProcessMain {
      * @param pidField   pid input
      * @param tableModel table data
      */
-    public static void resetTable(JButton resetBt, JTextField portField, JTextField pidField, DefaultTableModel tableModel) {
+    private static void resetTable(JButton resetBt, JTextField portField, JTextField pidField, DefaultTableModel tableModel) {
         resetBt.addActionListener(h -> {
             tableModel.setRowCount(0);
-            for (ProcessDetail detail : ProcessUtil.buildTableData()) {
-                tableModel.addRow(
-                        new Object[]{
-                                detail.getPid(),
-                                detail.getProtocol(),
-                                detail.getInnerHost(),
-                                detail.getOuterHost(),
-                                detail.getStatus()
-                        }
-                );
+            for (ProcessDetail detail : ProcessUtils.getTaskDetail()) {
+                tableModel.addRow(ProcessDetail.convert(detail));
             }
-            portField.setText("");
-            pidField.setText("");
+            portField.setText(FormConst.BLANK);
+            pidField.setText(FormConst.BLANK);
         });
     }
 
@@ -222,11 +194,11 @@ public class ProcessMain {
      * @param killBt    kill button
      * @param resetBt   reset button
      */
-    public static void killProcess(JTextField portField, JTextField pidField, JButton killBt, JButton resetBt) {
+    private static void killProcess(JTextField portField, JTextField pidField, JButton killBt, JButton resetBt) {
         killBt.addActionListener(h -> {
             String text = pidField.getText();
-            if (Objects.isNull(text) || Objects.equals("", text)) {
-                JOptionPane.showMessageDialog(frame, "请输入 PID", "Input Error", JOptionPane.ERROR_MESSAGE);
+            if (Objects.isNull(text) || Objects.equals(FormConst.BLANK, text)) {
+                JOptionPane.showMessageDialog(frame, FormConst.Zh.MSG_INPUT_PID, FormConst.Zh.MSG_TITLE_ERROR, JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -235,9 +207,9 @@ public class ProcessMain {
             try {
                 processBuilder.start();
                 resetBt.doClick();
-                portField.setText("");
-                pidField.setText("");
-                JOptionPane.showMessageDialog(frame, "进程关闭成功", "Successfully", JOptionPane.INFORMATION_MESSAGE);
+                portField.setText(FormConst.BLANK);
+                pidField.setText(FormConst.BLANK);
+                JOptionPane.showMessageDialog(frame, FormConst.Zh.MSG_PROCESS_CLOSE, FormConst.Zh.MSG_TITLE_SUCCESS, JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

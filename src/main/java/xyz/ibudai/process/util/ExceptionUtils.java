@@ -2,7 +2,7 @@ package xyz.ibudai.process.util;
 
 import java.util.Objects;
 
-public class ExceptionConvert {
+public class ExceptionUtils {
 
     public static String buildMsg(Throwable e) {
         if (Objects.isNull(e)) {
