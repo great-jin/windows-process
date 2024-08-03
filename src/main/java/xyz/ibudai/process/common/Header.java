@@ -1,6 +1,8 @@
 package xyz.ibudai.process.common;
 
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.Objects;
 
 public enum Header {
 
@@ -24,16 +26,16 @@ public enum Header {
         this.nameZh = nameZh;
     }
 
-    public static String[] zhHeaders() {
-        return Arrays.stream(Header.values())
-                .map(Header::getNameZh)
-                .toArray(String[]::new);
-    }
-
-    public static String[] enHeaders() {
-        return Arrays.stream(Header.values())
-                .map(Header::getNameEn)
-                .toArray(String[]::new);
+    public static String[] getHeaders(Locale locale) {
+        if (Objects.equals(locale.getLanguage(), Language.EN.getLanguage())) {
+            return Arrays.stream(Header.values())
+                    .map(Header::getNameEn)
+                    .toArray(String[]::new);
+        } else {
+            return Arrays.stream(Header.values())
+                    .map(Header::getNameZh)
+                    .toArray(String[]::new);
+        }
     }
 
     public int getIndex() {
