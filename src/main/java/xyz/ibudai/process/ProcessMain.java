@@ -47,6 +47,7 @@ public class ProcessMain {
         // 创建 JFrame 窗口
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(FormConst.FRAME_WIDTH, FormConst.FRAME_HEIGHT);
+        frame.setMinimumSize(new Dimension(800, 300));
 
         JPanel inputPanel = new JPanel();
         // 输入 [端口]

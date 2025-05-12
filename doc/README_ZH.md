@@ -14,18 +14,8 @@
 因此，我基于 `Java Swing` 和 `Process` 开发了此程序，提供了可用性更高的 `GUI` 程序实现上述操作。
 
 
-## 手册
-程序提供了两种运行方式，更推荐方式二。
-
-### 1. jar 运行
-在仓库的 `release` 页面下载 `windows process.zip` 文件，其中包含了 `start.vbs` 与 `windows process.jar` 两个文件，双击前者即可启动程序。
-
-注意: 此方式需要 `Windows` 配置了 JDK 环境，此程序基于 `JDK 8` 开发，在 `JDK 11` 与 `JDK 17`环境下也测试能够正常运行。
-
-### 2. exe 运行
-同方式一，在 `release` 页面下载 `windows process.exe` 程序，完成后双击即可启动。
-
-在此方式下启动程序后会先弹出一条 `exec4j9` 提示，因此是通过该工具实现程序打包，点击确认即可。
+## 下载
+在仓库的 `release` 页面下载 `windcess-<version>-portable.zip` 文件，解压后运行 `windcess.exe` 文件即可。
 
 
 ## Issue

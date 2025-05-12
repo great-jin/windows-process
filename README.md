@@ -14,18 +14,8 @@ In fact, it is not difficult enough that people will intolerances, but it is kin
 So, here we are, I base on `Java Swing` and `Process` develop this program, provide the easy use `GUI` for above operation.
 
 
-## Manual
-There is two way to running the program.
-
-### 1. Run with jar
-See the repository release and download the `windows process.zip`, it contain two file `start.vbs` and `windows process.jar`, just double-click the `start.vbs` then application will start.
-
-Notice: The required the `JDK` environment in you PC, the program was developed under `JDK 8`，but it also functional in `JDK 11` or `JDK 17`.
-
-### 2. Run with exe
-In this way, it was much easier, just download `windows process.exe` and double click.
-
-It will pop a notice by `exec4j9`, because I use it for package program, just click the confirm and move on.
+## Download
+See the repository release and download the `windcess-<version>-portable.zip`, and unzip it then you free to go.
 
 
 ## Issue
