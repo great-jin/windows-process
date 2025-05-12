@@ -15,17 +15,13 @@
 
 
 ## 手册
-程序提供了两种运行方式，更推荐方式二。
+程序提供两种方式运行，区别在于其中一种需要系统环境配置了 `JRE`。
 
-### 1. jar 运行
-在仓库的 `release` 页面下载 `windows process.zip` 文件，其中包含了 `start.vbs` 与 `windows process.jar` 两个文件，双击前者即可启动程序。
+### 方式一
+在 `release` 下载 `windcess.exe` 文件即可运行，此方式要求系统环境变量配置了 `jdk`，且版本不低于 `17`。
 
-注意: 此方式需要 `Windows` 配置了 JDK 环境，此程序基于 `JDK 8` 开发，在 `JDK 11` 与 `JDK 17`环境下也测试能够正常运行。
-
-### 2. exe 运行
-同方式一，在 `release` 页面下载 `windows process.exe` 程序，完成后双击即可启动。
-
-在此方式下启动程序后会先弹出一条 `exec4j9` 提示，因此是通过该工具实现程序打包，点击确认即可。
+### 方式二
+在 `release` 下载 `windcess-<version>-portable.zip` 文件，解压后运行 `windcess.exe` 文件即可。
 
 
 ## Issue
