@@ -2,6 +2,7 @@ package xyz.ibudai.process.service;
 
 import xyz.ibudai.process.common.FormConst;
 import xyz.ibudai.process.model.ProcessDetail;
+import xyz.ibudai.process.util.ExceptionUtils;
 import xyz.ibudai.process.util.ProcessUtils;
 
 import javax.swing.*;
@@ -16,15 +17,25 @@ import java.util.stream.Collectors;
 public class ButtonService {
 
     private final ResourceBundle bundle;
-
     private final Frame frame;
-
     private final DefaultTableModel tableModel;
+    private final LoadingOverlayService loadingService;
+    private final JButton[] allButtons;
 
-    public ButtonService(ResourceBundle bundle, Frame frame, DefaultTableModel tableModel) {
+    /**
+     * @param bundle         国际化资源
+     * @param frame          父窗口
+     * @param tableModel     表格数据模型
+     * @param loadingService loading 遮罩服务
+     * @param allButtons     所有操作按钮（loading 时全部禁用）
+     */
+    public ButtonService(ResourceBundle bundle, Frame frame, DefaultTableModel tableModel,
+                         LoadingOverlayService loadingService, JButton... allButtons) {
         this.bundle = bundle;
         this.frame = frame;
         this.tableModel = tableModel;
+        this.loadingService = loadingService;
+        this.allButtons = allButtons;
     }
 
     /**
@@ -41,7 +52,7 @@ public class ButtonService {
                         frame,
                         bundle.getString(FormConst.MSG_INPUT_PORT),
                         bundle.getString(FormConst.MSG_TITLE_ERROR),
-                        JOptionPane.ERROR_MESSAGE
+                        JOptionPane.WARNING_MESSAGE
                 );
                 return;
             }
@@ -74,7 +85,13 @@ public class ButtonService {
     }
 
     /**
-     * 重置表格数据
+     * 重置表格数据。
+     * <p>
+     * 流程：
+     * 1. 显示 loading 遮罩
+     * 2. 禁用所有按钮
+     * 3. 在后台线程中重新加载进程数据
+     * 4. 加载完成后在 EDT 中更新表格并恢复 UI
      *
      * @param portField port input
      * @param pidField  pid input
@@ -82,12 +99,46 @@ public class ButtonService {
      */
     public void resetTable(JTextField portField, JTextField pidField, JButton resetBt) {
         resetBt.addActionListener(h -> {
-            tableModel.setRowCount(0);
-            for (ProcessDetail detail : ProcessUtils.getTaskDetail()) {
-                tableModel.addRow(ProcessDetail.convert(detail));
-            }
-            portField.setText(FormConst.BLANK);
-            pidField.setText(FormConst.BLANK);
+            // 显示 loading 并禁用所有按钮
+            setLoadingState(true);
+
+            // 后台线程加载数据，避免阻塞 EDT
+            SwingWorker<List<ProcessDetail>, Void> worker = new SwingWorker<>() {
+                @Override
+                protected List<ProcessDetail> doInBackground() {
+                    // 模拟网络延迟（实际场景中此处为 I/O 耗时操作）
+                    try {
+                        Thread.sleep(800);
+                    } catch (InterruptedException ignored) {
+                    }
+                    return ProcessUtils.getTaskDetail();
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        List<ProcessDetail> detailList = get();
+                        tableModel.setRowCount(0);
+                        for (ProcessDetail detail : detailList) {
+                            tableModel.addRow(ProcessDetail.convert(detail));
+                        }
+                        portField.setText(FormConst.BLANK);
+                        pidField.setText(FormConst.BLANK);
+                        portField.requestFocusInWindow();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                ExceptionUtils.buildMsg(e),
+                                bundle.getString(FormConst.MSG_TITLE_ERROR),
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                    } finally {
+                        // 隐藏 loading 并恢复所有按钮
+                        setLoadingState(false);
+                    }
+                }
+            };
+            worker.execute();
         });
     }
 
@@ -107,8 +158,21 @@ public class ButtonService {
                         frame,
                         bundle.getString(FormConst.MSG_INPUT_PID),
                         bundle.getString(FormConst.MSG_TITLE_ERROR),
-                        JOptionPane.ERROR_MESSAGE
+                        JOptionPane.WARNING_MESSAGE
                 );
+                return;
+            }
+
+            // 二次确认弹窗
+            String confirmMsg = String.format(bundle.getString(FormConst.MSG_KILL_CONFIRM), text);
+            int choice = JOptionPane.showConfirmDialog(
+                    frame,
+                    confirmMsg,
+                    bundle.getString(FormConst.MSG_TITLE_CONFIRM),
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+            if (choice != JOptionPane.YES_OPTION) {
                 return;
             }
 
@@ -129,5 +193,28 @@ public class ButtonService {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    /**
+     * 设置 loading 状态：切换遮罩显示/隐藏，禁用/启用所有按钮。
+     *
+     * @param loading true 表示进入 loading 状态，false 表示恢复
+     */
+    private void setLoadingState(boolean loading) {
+        if (loading) {
+            loadingService.showLoading();
+        } else {
+            loadingService.hideLoading();
+        }
+
+        // 禁用/启用所有按钮（含禁用时的视觉反馈）
+        for (JButton button : allButtons) {
+            button.setEnabled(!loading);
+            if (loading) {
+                button.setCursor(Cursor.getDefaultCursor());
+            } else {
+                button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+        }
     }
 }

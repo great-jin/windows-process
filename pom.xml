@@ -6,13 +6,22 @@
 
     <groupId>xyz.ibudai</groupId>
     <artifactId>windows-process</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencies>
+        <!-- FlatLaf - Modern Look and Feel -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.4</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

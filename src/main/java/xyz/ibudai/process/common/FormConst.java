@@ -30,6 +30,7 @@ public class FormConst {
     public static final String MSG_TITLE_ERROR = "msg_title_error";
     public static final String MSG_TITLE_SUCCESS = "msg_title_success";
     public static final String MSG_TITLE_UNEXPECT = "msg_title_unexpect";
+    public static final String MSG_TITLE_CONFIRM = "msg_title_confirm";
 
     /**
      * Notice
@@ -37,5 +38,6 @@ public class FormConst {
     public static final String MSG_INPUT_PID = "msg_input_pid";
     public static final String MSG_INPUT_PORT = "msg_input_port";
     public static final String MSG_PROCESS_CLOSE = "msg_process_close";
+    public static final String MSG_KILL_CONFIRM = "msg_kill_confirm";
 
 }
